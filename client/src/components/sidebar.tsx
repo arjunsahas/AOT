@@ -8,8 +8,7 @@ import {
   Edit, 
   List, 
   CheckCheck, 
-  Settings, 
-  LogOut 
+  Settings 
 } from "lucide-react";
 
 interface SidebarProps {
@@ -18,7 +17,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { getPendingRequests } = useMockRequests();
 
   const pendingRequests = getPendingRequests();
@@ -138,17 +137,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
         </button>
       </nav>
 
-      {/* Logout */}
-      <div className="p-4 border-t border-gray-200">
-        <Button
-          variant="ghost"
-          className="w-full justify-start text-gray-600 hover:bg-gray-50 hover:text-red-600"
-          onClick={logout}
-        >
-          <LogOut className="mr-3 h-4 w-4" />
-          Logout
-        </Button>
-      </div>
+
     </aside>
   );
 }

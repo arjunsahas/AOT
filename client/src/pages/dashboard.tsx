@@ -6,17 +6,9 @@ import CustomerProfile from "@/components/customer-profile";
 import RequestManagement from "@/components/request-management";
 
 export default function Dashboard() {
-  const { user, isLoading } = useAuth();
+  const { user } = useAuth();
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [activeTab, setActiveTab] = useState("search");
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   const userInitials = user?.firstName && user?.lastName 
     ? `${user.firstName[0]}${user.lastName[0]}` 
@@ -65,8 +57,8 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm text-gray-500">Logged in as</p>
-                <p className="text-sm font-medium text-gray-900 capitalize">{user?.role} User</p>
+                <p className="text-sm text-gray-500">Demo Mode</p>
+                <p className="text-sm font-medium text-gray-900">Customer Operations System</p>
               </div>
               <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-medium">{userInitials}</span>
