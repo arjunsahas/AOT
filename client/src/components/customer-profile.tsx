@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMockRequests } from "@/hooks/useMockData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,23 +13,14 @@ interface CustomerProfileProps {
 
 export default function CustomerProfile({ selectedCustomer }: CustomerProfileProps) {
   const [showModificationModal, setShowModificationModal] = useState(false);
-  const [selectedCustomerState, setSelectedCustomerState] = useState(selectedCustomer);
+  const { getRequests } = useMockRequests();
 
-  const { data: customer } = useQuery({
-    queryKey: ["/api/customers", selectedCustomerState?.id],
-    enabled: !!selectedCustomerState?.id,
-  });
-
-  const { data: recentRequests } = useQuery({
-    queryKey: ["/api/requests", { customerId: selectedCustomerState?.id }],
-    enabled: !!selectedCustomerState?.id,
-  });
-
-  if (!selectedCustomerState && !customer) {
+  if (!selectedCustomer) {
     return null;
   }
 
-  const customerData = customer || selectedCustomerState;
+  const customerData = selectedCustomer;
+  const recentRequests = getRequests({ customerId: customerData.id });
 
   const getStatusColor = (status: string) => {
     switch (status) {

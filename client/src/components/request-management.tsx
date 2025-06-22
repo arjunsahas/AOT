@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMockRequests } from "@/hooks/useMockData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,11 +9,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { apiRequest } from "@/lib/queryClient";
-import { isUnauthorizedError } from "@/lib/authUtils";
 import { Filter, Plus, Eye, Check, X } from "lucide-react";
 
-export default function RequestManagement() {
+interface RequestManagementProps {
+  activeTab: string;
+}
+
+export default function RequestManagement({ activeTab }: RequestManagementProps) {
   const [filters, setFilters] = useState({
     requestType: "",
     status: "",
@@ -22,73 +24,38 @@ export default function RequestManagement() {
 
   const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { getRequests, updateRequestStatus, getPendingRequests } = useMockRequests();
 
-  const { data: requests, isLoading } = useQuery({
-    queryKey: ["/api/requests"],
-  });
+  const getRequestsData = () => {
+    switch (activeTab) {
+      case "approvals":
+        return getPendingRequests();
+      case "history":
+        return getRequests();
+      case "modify":
+        return getRequests({ userId: user?.id });
+      default:
+        return getRequests();
+    }
+  };
 
-  const approveMutation = useMutation({
-    mutationFn: async (requestId: number) => {
-      await apiRequest("PATCH", `/api/requests/${requestId}/approve`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/requests"] });
-      toast({
-        title: "Success",
-        description: "Request approved successfully",
-      });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Error",
-        description: "Failed to approve request",
-        variant: "destructive",
-      });
-    },
-  });
+  const requests = getRequestsData();
 
-  const rejectMutation = useMutation({
-    mutationFn: async (requestId: number) => {
-      await apiRequest("PATCH", `/api/requests/${requestId}/reject`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/requests"] });
-      toast({
-        title: "Success",
-        description: "Request rejected successfully",
-      });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Error",
-        description: "Failed to reject request",
-        variant: "destructive",
-      });
-    },
-  });
+  const handleApprove = (requestId: number) => {
+    updateRequestStatus(requestId, "approved", user?.id);
+    toast({
+      title: "Success",
+      description: "Request approved successfully",
+    });
+  };
+
+  const handleReject = (requestId: number) => {
+    updateRequestStatus(requestId, "rejected", user?.id);
+    toast({
+      title: "Success",
+      description: "Request rejected successfully",
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -120,12 +87,25 @@ export default function RequestManagement() {
     return true;
   });
 
+  const getTitle = () => {
+    switch (activeTab) {
+      case "approvals":
+        return "Pending Approvals";
+      case "history":
+        return "Request History";
+      case "modify":
+        return "My Modification Requests";
+      default:
+        return "Request Management";
+    }
+  };
+
   return (
     <Card>
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-medium text-gray-900">Request Management</h3>
-          {canCreateRequests && (
+          <h3 className="text-lg font-medium text-gray-900">{getTitle()}</h3>
+          {canCreateRequests && activeTab === "modify" && (
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               New Request
@@ -143,11 +123,11 @@ export default function RequestManagement() {
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="none">All Types</SelectItem>
                   <SelectItem value="Name Modification">Name Modification</SelectItem>
                   <SelectItem value="DOB Modification">DOB Modification</SelectItem>
                   <SelectItem value="Gender Modification">Gender Modification</SelectItem>
-                  <SelectItem value="Contact Update">Contact Update</SelectItem>
+                  <SelectItem value="Email & Mobile Modification">Contact Update</SelectItem>
                   <SelectItem value="Bank Details">Bank Details</SelectItem>
                   <SelectItem value="Address Change">Address Change</SelectItem>
                 </SelectContent>
@@ -161,7 +141,7 @@ export default function RequestManagement() {
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="none">All Status</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="approved">Approved</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
@@ -203,13 +183,7 @@ export default function RequestManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    Loading requests...
-                  </TableCell>
-                </TableRow>
-              ) : filteredRequests?.length === 0 ? (
+              {filteredRequests?.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                     No requests found
@@ -235,21 +209,19 @@ export default function RequestManagement() {
                       <Button size="sm" variant="outline">
                         <Eye className="h-3 w-3" />
                       </Button>
-                      {canApprove && request.status === 'pending' && (
+                      {canApprove && request.status === 'pending' && activeTab === "approvals" && (
                         <>
                           <Button
                             size="sm"
                             className="bg-success hover:bg-green-600"
-                            onClick={() => approveMutation.mutate(request.id)}
-                            disabled={approveMutation.isPending}
+                            onClick={() => handleApprove(request.id)}
                           >
                             <Check className="h-3 w-3" />
                           </Button>
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => rejectMutation.mutate(request.id)}
-                            disabled={rejectMutation.isPending}
+                            onClick={() => handleReject(request.id)}
                           >
                             <X className="h-3 w-3" />
                           </Button>

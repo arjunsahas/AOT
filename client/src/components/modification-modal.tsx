@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useMockRequests } from "@/hooks/useMockData";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { isUnauthorizedError } from "@/lib/authUtils";
+import { useAuth } from "@/hooks/useAuth";
 import { Upload, Send } from "lucide-react";
 
 interface ModificationModalProps {
@@ -26,7 +25,8 @@ export default function ModificationModal({ isOpen, onClose, customer }: Modific
   });
 
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { createRequest } = useMockRequests();
 
   const requestTypes = [
     "Name Modification",
@@ -43,44 +43,6 @@ export default function ModificationModal({ isOpen, onClose, customer }: Modific
     "Exchange Details Modification",
   ];
 
-  const createRequestMutation = useMutation({
-    mutationFn: async (requestData: any) => {
-      await apiRequest("POST", "/api/requests", requestData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/requests"] });
-      toast({
-        title: "Success",
-        description: "Modification request created successfully",
-      });
-      onClose();
-      setFormData({
-        requestType: "",
-        currentValue: "",
-        newValue: "",
-        reason: "",
-      });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Error",
-        description: "Failed to create modification request",
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -93,12 +55,26 @@ export default function ModificationModal({ isOpen, onClose, customer }: Modific
       return;
     }
 
-    createRequestMutation.mutate({
+    createRequest({
       customerId: customer.id,
       requestType: formData.requestType,
       currentValue: { value: formData.currentValue },
       newValue: { value: formData.newValue },
       reason: formData.reason,
+      createdBy: user?.id || "unknown",
+    });
+
+    toast({
+      title: "Success",
+      description: "Modification request created successfully",
+    });
+    
+    onClose();
+    setFormData({
+      requestType: "",
+      currentValue: "",
+      newValue: "",
+      reason: "",
     });
   };
 
@@ -134,6 +110,9 @@ export default function ModificationModal({ isOpen, onClose, customer }: Modific
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Modification Request</DialogTitle>
+          <DialogDescription>
+            Submit a new modification request for customer {customer?.fullName}
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -209,9 +188,9 @@ export default function ModificationModal({ isOpen, onClose, customer }: Modific
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={createRequestMutation.isPending}>
+            <Button type="submit">
               <Send className="mr-2 h-4 w-4" />
-              {createRequestMutation.isPending ? "Submitting..." : "Submit Request"}
+              Submit Request
             </Button>
           </div>
         </form>

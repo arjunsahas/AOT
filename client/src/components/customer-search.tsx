@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMockCustomers } from "@/hooks/useMockData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,17 +14,21 @@ interface CustomerSearchProps {
 export default function CustomerSearch({ onCustomerSelect }: CustomerSearchProps) {
   const [searchType, setSearchType] = useState("ucc");
   const [searchValue, setSearchValue] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const { data: searchResults, isLoading } = useQuery({
-    queryKey: ["/api/customers/search", searchTerm, searchType],
-    enabled: !!searchTerm,
-  });
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const { searchCustomers } = useMockCustomers();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchValue.trim()) {
-      setSearchTerm(searchValue.trim());
+      setIsLoading(true);
+      // Simulate API delay
+      setTimeout(() => {
+        const results = searchCustomers(searchValue.trim(), searchType);
+        setSearchResults(results);
+        setIsLoading(false);
+      }, 500);
     }
   };
 
@@ -37,7 +41,12 @@ export default function CustomerSearch({ onCustomerSelect }: CustomerSearchProps
   const handleQuickSearch = (value: string, type: string) => {
     setSearchType(type);
     setSearchValue(value);
-    setSearchTerm(value);
+    setIsLoading(true);
+    setTimeout(() => {
+      const results = searchCustomers(value, type);
+      setSearchResults(results);
+      setIsLoading(false);
+    }, 300);
   };
 
   return (
@@ -119,7 +128,7 @@ export default function CustomerSearch({ onCustomerSelect }: CustomerSearchProps
           </div>
         )}
 
-        {searchResults && searchResults.length === 0 && searchTerm && (
+        {searchResults && searchResults.length === 0 && searchValue && !isLoading && (
           <div className="mt-4 border-t border-gray-200 pt-4">
             <p className="text-sm text-gray-500">No customers found matching your search criteria.</p>
           </div>

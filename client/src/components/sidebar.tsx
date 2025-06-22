@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
+import { useMockRequests } from "@/hooks/useMockData";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -13,14 +12,16 @@ import {
   LogOut 
 } from "lucide-react";
 
-export default function Sidebar() {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("search");
+interface SidebarProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+}
 
-  const { data: pendingCount } = useQuery({
-    queryKey: ["/api/pending-approvals"],
-    enabled: user?.role === "supervisor" || user?.role === "admin",
-  });
+export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
+  const { user, logout } = useAuth();
+  const { getPendingRequests } = useMockRequests();
+
+  const pendingRequests = getPendingRequests();
 
   const userInitials = user?.firstName && user?.lastName 
     ? `${user.firstName[0]}${user.lastName[0]}` 
@@ -38,7 +39,7 @@ export default function Sidebar() {
           </div>
           <div>
             <h1 className="text-lg font-semibold text-gray-900">Customer Ops</h1>
-            <p className="text-xs text-gray-500">Management System</p>
+            <p className="text-xs text-gray-500">Demo System</p>
           </div>
         </div>
       </div>
@@ -87,7 +88,7 @@ export default function Sidebar() {
             }`}
           >
             <Edit className="text-sm" />
-            <span>Modify Requests</span>
+            <span>Create Requests</span>
           </button>
         )}
         
@@ -116,9 +117,9 @@ export default function Sidebar() {
               <CheckCheck className="text-sm" />
               <span>Pending Approvals</span>
             </div>
-            {pendingCount && pendingCount.length > 0 && (
+            {pendingRequests.length > 0 && (
               <Badge variant="secondary" className="bg-warning text-white">
-                {pendingCount.length}
+                {pendingRequests.length}
               </Badge>
             )}
           </button>
@@ -142,7 +143,7 @@ export default function Sidebar() {
         <Button
           variant="ghost"
           className="w-full justify-start text-gray-600 hover:bg-gray-50 hover:text-red-600"
-          onClick={() => window.location.href = '/api/logout'}
+          onClick={logout}
         >
           <LogOut className="mr-3 h-4 w-4" />
           Logout
