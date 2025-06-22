@@ -1,0 +1,61 @@
+Data Details and Source
+The data to be displayed in the front end are as follows
+Basic User Details
+Address
+Bank Details
+Additional Info
+Consent
+Fatca
+Income details
+Nominee
+Poa information
+Pricing plan
+Segment plan
+Any other data found in comtek not present in profile.
+
+The above data should be populated from the profile service.
+ Functional Details
+The UI should provide the ability for the operations team to 
+Search
+Search customer info based on ucc/pan/name/mobile number and email id
+Search should populate the UI with the data as described here
+The back-end for this search feature and populate data would be profile backend.
+Raise Modify/Change Requests
+Modify/Change customer info based on offline requests from the customer.
+Types of request accepted are as follows
+Name Modification
+DOB Modification    
+Gender Modification
+Marital Status Modification    
+Father/Spouse Name Modification    
+DDPI/EDIS Updation and Modification
+Brokerage Details Modification
+Email & Mobile Modification in case of access lost/fraudulent cases
+All Modifications associated with NRI and Non Individual accounts
+Bank Delink request (via email)
+Additional Demat details Updation
+Proof Details Updation/Modification
+ Exchange Details Modification
+Operations users should be able to raise a request for the request types mentioned in point 2.
+Multiple Fields can be modified in one request and each field will have its own Success/Rejected response. The fields that can be modified will be constrained by the change request type.
+Should be able to accept scanned documents for upload.
+Requests raised will be sent to the backend and then to the growth systems for action.
+A Success/Rejected/Partial_Success response will bring the request to completion.
+Once the request is successful, the data will be then sent to the profile for update.
+The data will be modified only on Success/Partial_Success response based on the field/s 
+List Change Requests
+Search Change Requests based on ucc/pan/name/mobile number and email id.
+Filter based on request types.
+Authentication And Authorization
+Authentication should be SSO based and should maintain a session based on JWT token
+Authorization should be a tiered one having 
+Supervisor
+Approve requests
+Operator
+Raise requests.
+Admin
+Assign Roles.
+ReadOnly
+Read Only Access.
+Maker Checker
+The Front End should provide for maker-checker process. Once the request is raised by Operator and approved by Supervisor, only then the request will be raised,
