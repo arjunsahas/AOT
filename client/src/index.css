@@ -23,6 +23,15 @@
   --destructive-foreground: hsl(60, 9.1%, 97.8%);
   --ring: hsl(20, 14.3%, 4.1%);
   --radius: 0.5rem;
+  
+  /* Custom colors matching the design */
+  --primary-50: hsl(207, 100%, 96%);
+  --primary-100: hsl(207, 100%, 91%);
+  --primary-600: hsl(207, 90%, 54%);
+  --primary-700: hsl(207, 90%, 45%);
+  --success: hsl(120, 61%, 50%);
+  --warning: hsl(38, 100%, 50%);
+  --error: hsl(4, 90%, 58%);
 }
 
 .dark {
@@ -55,5 +64,56 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  .bg-primary-50 {
+    background-color: var(--primary-50);
+  }
+  
+  .bg-primary-100 {
+    background-color: var(--primary-100);
+  }
+  
+  .bg-primary-600 {
+    background-color: var(--primary-600);
+  }
+  
+  .bg-primary-700 {
+    background-color: var(--primary-700);
+  }
+  
+  .text-primary-600 {
+    color: var(--primary-600);
+  }
+  
+  .text-primary-700 {
+    color: var(--primary-700);
+  }
+  
+  .bg-success {
+    background-color: var(--success);
+  }
+  
+  .bg-warning {
+    background-color: var(--warning);
+  }
+  
+  .bg-error {
+    background-color: var(--error);
+  }
+  
+  .text-success {
+    color: var(--success);
+  }
+  
+  .text-warning {
+    color: var(--warning);
+  }
+  
+  .text-error {
+    color: var(--error);
   }
 }
